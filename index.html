@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangladesh TV — Live</title>
+    <meta name="description" content="Watch Bangladesh TV channels live. Free streaming, no signup.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'><rect width='36' height='36' fill='%23006a4e'/><circle cx='18' cy='18' r='8' fill='%23f42a41'/></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --green: #006a4e;
+            --green-soft: #0d7a5f;
+            --green-muted: rgba(0,106,78,0.08);
+            --green-glow: rgba(0,106,78,0.25);
+            --red: #f42a41;
+            --red-soft: rgba(244,42,65,0.1);
+            --bg: #090c0b;
+            --bg-elevated: #0f1312;
+            --bg-card: #131917;
+            --bg-card-hover: #1a2220;
+            --bg-input: #111715;
+            --text: #e4ede8;
+            --text-secondary: #94a89e;
+            --text-dim: #5e756a;
+            --border: #1c2a24;
+            --border-subtle: #162019;
+            --radius: 10px;
+            --radius-lg: 14px;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        ::selection { background: var(--green); color: white; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            height: 52px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .topbar-flag {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--green) 60%, var(--red));
+            display: grid;
+            place-items: center;
+            position: relative;
+        }
+
+        .topbar-flag::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar-title span {
+            color: var(--text-dim);
+            font-weight: 400;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        .topbar-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-btn {
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .topbar-btn:hover { background: var(--bg-card); color: var(--text); border-color: var(--border); }
+        .topbar-btn.on { background: var(--green); border-color: var(--green); color: white; }
+
+        .topbar-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        .hamburger {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 8px;
+            place-items: center;
+        }
+
+        .hamburger:hover { background: var(--bg-card); }
+        .hamburger svg { width: 20px; height: 20px; }
+
+        /* ===== LAYOUT ===== */
+        .shell {
+            display: flex;
+            height: calc(100vh - 52px);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-elevated);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-search {
+            padding: 10px 12px;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-wrap svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            height: 36px;
+            padding: 0 12px 0 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-input);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .search-wrap input:focus { border-color: var(--green-soft); }
+        .search-wrap input::placeholder { color: var(--text-dim); }
+
+        .sidebar-tags {
+            padding: 6px 12px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tag {
+            height: 26px;
+            padding: 0 9px;
+            border-radius: 6px;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .tag:hover { color: var(--text-secondary); background: var(--bg-card-hover); }
+        .tag.on { background: var(--green); color: #fff; }
+        .tag .n { opacity: 0.6; font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 6px;
+        }
+
+        .ch-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.12s;
+            border: 1px solid transparent;
+        }
+
+        .ch-item:hover { background: var(--bg-card-hover); }
+        .ch-item.picked { background: var(--green-muted); border-color: rgba(0,106,78,0.18); }
+
+        .ch-item-thumb {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ch-item-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+
+        .ch-item-thumb .ic {
+            color: var(--green);
+            width: 18px;
+            height: 18px;
+            display: none;
+        }
+
+        .ch-item-body { flex: 1; min-width: 0; }
+
+        .ch-item-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .ch-item-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 1px;
+        }
+
+        .dot-live {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--red);
+            animation: blink 2.5s ease-in-out infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .ch-item-fav {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 6px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .ch-item-fav:hover { color: var(--red); background: var(--red-soft); }
+        .ch-item-fav.liked { color: var(--red); }
+        .ch-item-fav svg { width: 14px; height: 14px; }
+
+        .sidebar-foot {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 10px;
+            color: var(--text-dim);
+            text-align: center;
+            letter-spacing: 0.2px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 28px 16px;
+        }
+
+        .empty-msg svg { width: 32px; height: 32px; color: var(--text-dim); margin-bottom: 8px; }
+        .empty-msg p { font-size: 12px; color: var(--text-dim); }
+        .empty-msg small { font-size: 11px; color: var(--text-dim); opacity: 0.7; }
+
+        /* ===== STAGE (main) ===== */
+        .stage {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .stage-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== PLAYER ===== */
+        .player {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            max-height: 65vh;
+            box-shadow: 0 2px 40px rgba(0,0,0,0.5);
+        }
+
+        .player video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .player-ov {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-ov.clickable { cursor: pointer; }
+
+        .p-load {
+            text-align: center;
+        }
+
+        .p-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2.5px solid rgba(255,255,255,0.08);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .p-load p { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; }
+        .p-load small { color: rgba(255,255,255,0.35); font-size: 11px; display: block; margin-top: 4px; }
+
+        .p-err { text-align: center; padding: 20px; }
+
+        .p-err-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--red-soft);
+            display: grid;
+            place-items: center;
+            margin: 0 auto 10px;
+        }
+
+        .p-err-icon svg { width: 22px; height: 22px; color: var(--red); }
+        .p-err p { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; }
+        .p-err small { color: rgba(255,255,255,0.4); font-size: 11px; display: block; margin: 4px 0 14px; }
+
+        .p-err-btn {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 7px;
+            border: none;
+            background: var(--green);
+            color: #fff;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .p-err-btn:hover { background: var(--green-soft); }
+
+        .p-play-big {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(0,106,78,0.85);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+            box-shadow: 0 0 30px rgba(0,106,78,0.3);
+        }
+
+        .p-play-big:hover { background: var(--green); transform: scale(1.06); }
+        .p-play-big svg { width: 26px; height: 26px; fill: #fff; margin-left: 3px; }
+
+        .player-bar-top {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 10px 14px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
+        }
+
+        .player:hover .player-bar-top,
+        .player:hover .player-bar-bot { opacity: 1; }
+
+        .player-bar-top .np {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .mutetag {
+            font-size: 9px;
+            font-weight: 600;
+            background: rgba(255,193,7,0.12);
+            color: #ffc107;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .player-bar-bot {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 10px 14px;
+            background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+            opacity: 0;
+            transition: opacity 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .p-ctrl {
+            width: 34px;
+            height: 34px;
+            border: none;
+            background: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.12s;
+        }
+
+        .p-ctrl:hover { background: rgba(255,255,255,0.12); }
+        .p-ctrl svg { width: 18px; height: 18px; }
+        .p-ctrl.muted svg { color: #ffc107; }
+
+        .ctrl-row { display: flex; align-items: center; gap: 2px; }
+
+        /* ===== INFO SECTION ===== */
+        .ch-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .ch-head-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .ch-head-logo img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+
+        .ch-head-info { flex: 1; min-width: 0; }
+
+        .ch-head-info h2 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.25;
+        }
+
+        .ch-head-info .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .bdg {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .bdg-live { background: var(--green-muted); color: var(--green-soft); }
+        .bdg-grp { background: var(--bg-card); color: var(--text-dim); }
+        .bdg-res { background: var(--bg-card); color: var(--text-dim); }
+
+        .ch-head-fav {
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .hr { border: none; border-top: 1px solid var(--border-subtle); margin: 18px 0; }
+
+        .sec-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sec-title svg { width: 14px; height: 14px; color: var(--green-soft); }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 6px;
+        }
+
+        .rel-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 8px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.12s;
+            border: 1px solid transparent;
+        }
+
+        .rel-card:hover { border-color: var(--border); background: var(--bg-card-hover); }
+
+        .rel-card-thumb {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--bg);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rel-card-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+
+        .rel-card-name { font-size: 12px; font-weight: 500; line-height: 1.2; }
+        .rel-card-sub { font-size: 10px; color: var(--text-dim); }
+
+        .pill-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        .pill {
+            height: 28px;
+            padding: 0 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        .pill:hover { border-color: var(--green-soft); color: var(--green-soft); background: var(--green-muted); }
+
+        /* ===== WELCOME ===== */
+        .welcome {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 52px);
+            padding: 24px;
+        }
+
+        .welcome-box {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .welcome-flag {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--green) 55%, var(--red));
+            display: grid;
+            place-items: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 32px var(--green-glow);
+            position: relative;
+        }
+
+        .welcome-flag::after {
+            content: '';
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+
+        .welcome-box h2 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .welcome-box .tagline {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .welcome-stats {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .w-stat {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+        }
+
+        .w-stat.g { background: var(--green-muted); color: var(--green-soft); }
+        .w-stat.b { background: rgba(59,130,246,0.08); color: #60a5fa; }
+        .w-stat.o { background: rgba(251,146,60,0.08); color: #fb923c; }
+
+        .welcome-cta {
+            height: 40px;
+            padding: 0 24px;
+            border-radius: 9px;
+            border: none;
+            background: var(--green);
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .welcome-cta:hover { background: var(--green-soft); }
+        .welcome-cta svg { width: 16px; height: 16px; }
+
+        .welcome-note {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== CREATOR SECTION ===== */
+        .creator-section {
+            margin-top: 28px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .creator-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .creator-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid var(--border);
+        }
+
+        .creator-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .creator-info { flex: 1; min-width: 0; }
+
+        .creator-label {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--green-soft);
+            margin-bottom: 3px;
+        }
+
+        .creator-name {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            margin-bottom: 4px;
+        }
+
+        .creator-bio {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.55;
+            margin-bottom: 8px;
+        }
+
+        .creator-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .creator-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            height: 26px;
+            padding: 0 10px;
+            border-radius: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.12s;
+        }
+
+        .creator-link:hover { border-color: var(--green-soft); color: var(--green-soft); }
+        .creator-link svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+        /* ===== FOOTER ===== */
+        .site-footer {
+            margin-top: 28px;
+            padding: 14px 0 18px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .site-footer a {
+            color: var(--green-soft);
+            text-decoration: none;
+        }
+
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* ===== MOBILE OVERLAY ===== */
+        .sb-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 90;
+        }
+
+        .sb-overlay.show { display: block; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .hamburger { display: grid; }
+
+            .sidebar {
+                position: fixed;
+                top: 52px;
+                left: 0;
+                bottom: 0;
+                z-index: 100;
+                width: 300px;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+
+            .sidebar.open { transform: translateX(0); }
+
+            .topbar-btn .btn-label { display: none; }
+            .topbar-btn { padding: 0 8px; }
+        }
+
+        @media (max-width: 600px) {
+            .stage-inner { padding: 14px; }
+
+            .ch-head {
+                flex-wrap: wrap;
+            }
+
+            .ch-head-info h2 { font-size: 17px; }
+
+            .related-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .creator-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .creator-links { justify-content: center; }
+
+            .welcome-box h2 { font-size: 22px; }
+
+            .player {
+                border-radius: 10px;
+            }
+
+            .site-footer {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .related-grid { grid-template-columns: 1fr; }
+            .sidebar { width: 280px; }
+        }
+
+        /* Fullscreen */
+        .player:fullscreen,
+        .player:-webkit-full-screen {
+            border-radius: 0;
+            max-height: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <button class="hamburger" id="hamBtn" onclick="toggleSB()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+        <div class="topbar-brand">
+            <div class="topbar-flag"></div>
+            <div class="topbar-title">Bangladesh TV <span>Live</span></div>
+        </div>
+        <div class="topbar-actions">
+            <button class="topbar-btn" id="favBtn" onclick="toggleFavFilter()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="btn-label">Saved</span>
+                <span id="favN" style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:8px;font-size:9px;display:none;font-family:'JetBrains Mono',monospace;">0</span>
+            </button>
+            <button class="topbar-btn" onclick="playRandom()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                <span class="btn-label">Shuffle</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="shell">
+        <div class="sb-overlay" id="sbOv" onclick="toggleSB()"></div>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-search">
+                <div class="search-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="searchIn" placeholder="Find a channel..." oninput="onSearch()">
+                </div>
+            </div>
+            <div class="sidebar-tags" id="tags"></div>
+            <div class="sidebar-list" id="chList"></div>
+            <div class="sidebar-foot"><span id="chTotal">45</span> channels &middot; sourced from iptv-org</div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="stage" id="stage"></main>
+    </div>
+
+    <script>
+    const C = [
+        {id:"ATNBangla.bd@SD",name:"ATN Bangla",logo:"https://i.imgur.com/vFpjggf.png",group:"General",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8",res:"1080p"},
+        {id:"AamarBangla.in@SD",name:"Aamar Bangla",logo:"https://jiotvimages.cdn.jio.com/dare_images/images/Amaar_Bangla.png",group:"Entertainment",url:"https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI/amarbanglatv.stream/playlist.m3u8",res:"720p"},
+        {id:"AnandaTV.bd@SD",name:"Ananda TV",logo:"https://i.imgur.com/jkbo7Qe.png",group:"Entertainment",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1713/output/index.m3u8",res:"1080p"},
+        {id:"ATNMusic.bd@SD",name:"ATN Music",logo:"https://www.jagobd.com/wp-content/uploads/2015/12/atnmusic.jpg?x50681",group:"Music",url:"https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI/atnmusic.stream/playlist.m3u8",res:"360p"},
+        {id:"ATNNews.bd@SD",name:"ATN News",logo:"https://i.imgur.com/4qZQKjo.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8",res:"1080p"},
+        {id:"BanglaVision.bd@SD",name:"BanglaVision",logo:"https://i.imgur.com/Qbt6q4z.png",group:"General",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1715/output/index.m3u8",res:"1080p"},
+        {id:"BoishakhiTV.bd@SD",name:"Boishakhi TV",logo:"https://i.imgur.com/gxL05Y4.png",group:"General",url:"https://boishakhi.sonarbanglatv.com/boishakhi/boishakhitv/index.m3u8"},
+        {id:"BTVChattogram.bd@SD",name:"BTV Chattogram",logo:"https://i.imgur.com/hvpyuek.png",group:"General",url:"https://www.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/a707f2dc-9704-413a-a67c-17c64a77c350/index.m3u8",res:"1080p"},
+        {id:"BTVNational.bd@SD",name:"BTV National",logo:"https://i.imgur.com/5OE2FDt.png",group:"General",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8",res:"1080p"},
+        {id:"BTVWorld.bd@SD",name:"BTV World",logo:"https://i.imgur.com/sSnrg7o.png",group:"General",url:"https://www.btvlive.gov.bd/streams/ef8b8bbc-98b7-4ba7-a49d-a0adaf259d35/ES/d96eb7f4-83c2-4472-9597-3568390a8ebf/d96eb7f4-83c2-4472-9597-3568390a8ebf_3_playlist.m3u8",res:"1080p"},
+        {id:"Channel24.bd@SD",name:"Channel 24",logo:"https://i.imgur.com/4JLkaF7.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8",res:"1080p"},
+        {id:"Channel9.bd@SD",name:"Channel 9",logo:"https://i.imgur.com/7oTsfQ4.png",group:"Entertainment",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1729/output/1729.m3u8",res:"1080p"},
+        {id:"ChannelI.bd@SD",name:"Channel I",logo:"https://i.imgur.com/hJxFLvF.png",group:"Culture",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8",res:"1080p"},
+        {id:"ChannelS.uk@SD",name:"Channel S",logo:"https://i.imgur.com/hJxFLvF.png",group:"Culture",url:"https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI/chsukoff.stream/playlist.m3u8",res:"576p"},
+        {id:"DBCNews.bd@SD",name:"DBC News",logo:"https://i.imgur.com/Qbt6q4z.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/1728.m3u8",res:"1080p"},
+        {id:"DeeptoTV.bd@SD",name:"Deepto TV",logo:"https://i.imgur.com/tRrDh6z.png",group:"Entertainment",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8",res:"1080p"},
+        {id:"DeshTV.bd@SD",name:"Desh TV",logo:"https://i.imgur.com/ItrZok1.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1726/output/index.m3u8",res:"1080p"},
+        {id:"DeshiTV.ca@SD",name:"Deshi TV",logo:"https://i.imgur.com/PzqzgMm.png",group:"General",url:"https://deshitv.deshitv24.net/live/myStream/playlist.m3u8",res:"720p"},
+        {id:"DisneyInternationalHD.in@SD",name:"Disney International HD",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_DISNEY_INTERNATIONAL_HD/images/LOGO_HD/image.png",group:"Kids",url:"http://116.90.120.151:8000/play/a0hp/index.m3u8",res:"1080p"},
+        {id:"EkattorTV.bd@SD",name:"Ekattor TV",logo:"https://i.imgur.com/tRrDh6z.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8",res:"1080p"},
+        {id:"EkhonTV.bd@SD",name:"Ekhon TV",logo:"https://i.imgur.com/tRrDh6z.png",group:"Business",url:"https://tplay.live/out/bangladesh/ekhontv.index.m3u8",res:"1080p"},
+        {id:"EkusheyTV.bd@SD",name:"Ekushey TV",logo:"https://i.imgur.com/lRpkGHj.png",group:"News",url:"http://210.4.72.204/hls-live/livepkgr/_definst_/liveevent/livestream3.m3u8",res:"480p"},
+        {id:"GaziTV.bd@SD",name:"Gazi TV",logo:"https://i.imgur.com/2Lzhiq6.png",group:"General",url:"http://tvn1.chowdhury-shaheb.com/gazitv/index.m3u8",res:"1080p"},
+        {id:"GreenTV.bd@SD",name:"Green TV",logo:"https://www.jagobd.com/wp-content/uploads/2022/12/green-tv.jpg",group:"Family",url:"https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/greentv.stream/live-orgin/greentv.stream/playlist.m3u8",res:"1080p"},
+        {id:"IndependentTV.bd@SD",name:"Independent TV",logo:"https://i.imgur.com/POXFhGN.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8",res:"1080p"},
+        {id:"JalshaMovies.in@HD",name:"Jalsha Movies HD",logo:"https://i.imgur.com/25eWjX2.png",group:"Movies",url:"http://103.229.254.25:7001/play/a0dt/index.m3u8",res:"1080p"},
+        {id:"JamunaTV.bd@SD",name:"Jamuna TV",logo:"https://www.jamuna.tv/wp-content/themes/jtv-news/img/logo.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8",res:"1080p"},
+        {id:"MadaniChannelBangla.bd@SD",name:"Madani Channel Bangla",logo:"https://i.imgur.com/vIJTVia.png",group:"Religious",url:"https://streaming.madanichannel.tv/static/streaming-playlists/hls/d3e49b76-ac06-4689-a641-9200445b647f/master.m3u8",res:"1080p"},
+        {id:"MohonaTV.bd@SD",name:"Mohona TV",logo:"https://i.imgur.com/E6doEWH.png",group:"General",url:"http://103.229.254.25:7001/play/a05t/index.m3u8",res:"1080p"},
+        {id:"MovieBangla.bd@SD",name:"Movie Bangla",logo:"https://www.jagobd.com/wp-content/uploads/2016/02/moviebangla.jpg?x50681",group:"Movies",url:"http://alvetv.com/moviebanglatv/8080/index.m3u8"},
+        {id:"NationalGeographic.in@HD",name:"National Geographic HD",logo:"https://dtil.tmsimg.com/assets/s143574_ld_h15_aa.png?lock=720x540",group:"Documentary",url:"http://103.157.248.140:8000/play/a012/index.m3u8",res:"1080p"},
+        {id:"NationalGeographicWild.in@HD",name:"Nat Geo Wild HD",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_NAT_GEO_WILD/images/LOGO_HD/image.png",group:"Documentary",url:"http://103.157.248.140:8000/play/a010/index.m3u8",res:"1080p"},
+        {id:"News24.bd@SD",name:"News 24",logo:"https://i.imgur.com/fkTHh75.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1708/output/index.m3u8",res:"1080p"},
+        {id:"NickJr.in@SD",name:"Nick Jr.",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_NICK_JUNIOR/images/LOGO_HD/image.png",group:"Kids",url:"http://103.72.101.252:8080/live/544.m3u8",res:"576p"},
+        {id:"Nickelodeon.in@SD",name:"Nickelodeon",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_NICK/images/LOGO_HD/image.png",group:"Kids",url:"http://103.72.101.252:8080/live/545.m3u8",res:"576p"},
+        {id:"NTV.bd@SD",name:"NTV",logo:"https://i.imgur.com/yu8ugqt.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1716/output/index.m3u8",res:"1080p"},
+        {id:"PeaceTVBangla.ae@SD",name:"Peace TV Bangla",logo:"https://i.imgur.com/1ztVXUi.png",group:"Religious",url:"https://dzkyvlfyge.erbvr.com/PeaceTvBangla/index.m3u8",res:"1080p"},
+        {id:"ProbashiTVNews.ca@SD",name:"Probashi TV News",logo:"https://i.imgur.com/7oTsfQ4.png",group:"News",url:"http://probashi.alvegroups.com:8081/probashitv/probashi/playlist.m3u8",res:"1080p"},
+        {id:"RTV.bd@SD",name:"RTV",logo:"https://i.imgur.com/yu8ugqt.png",group:"General",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1721/output/index.m3u8",res:"1080p"},
+        {id:"SangsadTV.bd@SD",name:"Sangsad TV",logo:"https://i.imgur.com/jkouxLg.png",group:"Legislative",url:"https://www.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/9ee3b4f9-fd0a-47c5-a135-2575c5691613/index.m3u8",res:"1080p"},
+        {id:"SomoyNewsTV.bd@SD",name:"Somoy News TV",logo:"https://i.imgur.com/i54AQic.png",group:"News",url:"https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8",res:"1080p"},
+        {id:"Sonic.in@SD",name:"Sonic",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_SONIC/images/LOGO_HD/image.png",group:"Kids",url:"http://103.229.254.25:7001/play/a0dl/index.m3u8",res:"576p"},
+        {id:"TSports.bd@SD",name:"T Sports",logo:"https://i.imgur.com/2JzlorD.png",group:"Sports",url:"https://tvsen7.aynaott.com/tsportshd/index.m3u8",res:"720p"},
+        {id:"VoktaTV.bd@SD",name:"Vokta TV",logo:"https://i.imgur.com/szAGBCU.png",group:"General",url:"https://vokta.raytahost.com/live/voktatv/index.m3u8",res:"720p"},
+        {id:"ZeeBangla.in@SD",name:"Zee Bangla",logo:"https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_ZEE_BANGLA_HD/images/LOGO_HD/LOGO_HD_image.png",group:"Entertainment",url:"http://103.72.101.252:8080/live/625.m3u8",res:"576p"},
+        {id:"ZeeBanglaSonar.in@SD",name:"Zee Bangla Sonar",logo:"https://dtil.tmsimg.com/assets/GNLZZGG00287G7K.png?lock=720x540",group:"Entertainment",url:"http://103.229.254.25:7001/play/a070/index.m3u8",res:"576p"}
+    ];
+
+    const GRP = ["All","News","Entertainment","General","Kids","Movies","Music","Sports","Documentary","Religious","Culture","Business","Family","Legislative"];
+
+    let sel = null;
+    let grp = "All";
+    let sq = "";
+    let favOnly = false;
+    let hls = null;
+    let muted = true;
+    let playing = false;
+    let pState = "idle";
+    let pErr = "";
+    let tmOut = null;
+
+    // Favorites
+    const favs = () => { try { return JSON.parse(localStorage.getItem('bdtv_f') || '[]'); } catch { return []; } };
+    const isFav = id => favs().includes(id);
+    const togFav = id => {
+        let f = favs();
+        f = f.includes(id) ? f.filter(x => x !== id) : [...f, id];
+        localStorage.setItem('bdtv_f', JSON.stringify(f));
+        renderList(); renderStage(); updFavBtn();
+    };
+    const updFavBtn = () => {
+        const btn = document.getElementById('favBtn');
+        const n = document.getElementById('favN');
+        const f = favs();
+        btn.classList.toggle('on', favOnly);
+        n.style.display = f.length ? 'inline' : 'none';
+        n.textContent = f.length;
+    };
+
+    // Filter
+    const filtered = () => {
+        let r = C;
+        if (sq) { const q = sq.toLowerCase(); r = r.filter(c => c.name.toLowerCase().includes(q) || c.group.toLowerCase().includes(q)); }
+        else if (favOnly) r = r.filter(c => isFav(c.id));
+        else if (grp !== "All") r = r.filter(c => c.group === grp);
+        return r;
+    };
+
+    const counts = () => { const m = {All:C.length}; C.forEach(c => m[c.group] = (m[c.group]||0)+1); return m; };
+
+    // Render tags
+    const renderTags = () => {
+        const ct = counts();
+        document.getElementById('tags').innerHTML = GRP.map(g =>
+            `<button class="tag ${grp===g&&!sq&&!favOnly?'on':''}" onclick="pickGrp('${g}')">${g} <span class="n">${ct[g]||0}</span></button>`
+        ).join('');
+    };
+
+    // Render channel list
+    const renderList = () => {
+        const chs = filtered();
+        const el = document.getElementById('chList');
+        if (!chs.length) {
+            el.innerHTML = `<div class="empty-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><p>${favOnly?'No saved channels yet':'Nothing found'}</p>${favOnly?'<small>Tap the heart to save</small>':''}</div>`;
+            return;
+        }
+        el.innerHTML = chs.map(c => {
+            const act = sel && sel.id === c.id;
+            const f = isFav(c.id);
+            return `<div class="ch-item ${act?'picked':''}" onclick="pick('${c.id}')">
+                <div class="ch-item-thumb"><img src="${c.logo}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                <div class="ch-item-body"><div class="ch-item-name">${c.name}</div><div class="ch-item-sub"><span class="dot-live"></span>${c.group}${c.res?' &middot; '+c.res:''}</div></div>
+                <button class="ch-item-fav ${f?'liked':''}" onclick="event.stopPropagation();togFav('${c.id}')"><svg viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+            </div>`;
+        }).join('');
+    };
+
+    // Render main stage
+    const renderStage = () => {
+        const el = document.getElementById('stage');
+        if (!sel) { el.innerHTML = renderWelcome(); return; }
+        const c = sel;
+        const f = isFav(c.id);
+        const rel = C.filter(x => x.group === c.group && x.id !== c.id);
+        const others = C.filter(x => x.id !== c.id);
+
+        el.innerHTML = `<div class="stage-inner">
+            <div class="player" id="playerBox">
+                <video id="vid" playsinline muted></video>
+                <div class="player-ov clickable" id="pOv" onclick="handleClick()"></div>
+                <div class="player-bar-top"><div class="np"><span class="dot-live"></span><span>${c.name}</span>${muted&&playing?'<span class="mutetag">MUTED</span>':''}</div></div>
+                <div class="player-bar-bot"><div class="ctrl-row"><button class="p-ctrl" onclick="togPlay()" title="${playing?'Pause':'Play'}">${playing?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>':'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>'}</button><button class="p-ctrl ${muted?'muted':''}" onclick="togMute()" title="${muted?'Unmute':'Mute'}">${muted?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>'}</button></div><div class="ctrl-row"><button class="p-ctrl" onclick="togFS()" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button></div></div>
+            </div>
+
+            <div class="ch-head">
+                <div class="ch-head-logo"><img src="${c.logo}" alt="" onerror="this.style.display='none'"></div>
+                <div class="ch-head-info">
+                    <h2>${c.name}</h2>
+                    <div class="badges"><span class="bdg bdg-live"><span class="dot-live" style="width:4px;height:4px;"></span>LIVE</span><span class="bdg bdg-grp">${c.group}</span>${c.res?`<span class="bdg bdg-res">${c.res}</span>`:''}</div>
+                </div>
+                <button class="topbar-btn ch-head-fav ${f?'on':''}" onclick="togFav('${c.id}')"><svg viewBox="0 0 24 24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${f?'Saved':'Save'}</button>
+            </div>
+
+            ${rel.length ? `<hr class="hr"><div><div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>More in ${c.group}</div><div class="related-grid">${rel.map(r=>`<div class="rel-card" onclick="pick('${r.id}')"><div class="rel-card-thumb"><img src="${r.logo}" alt="" onerror="this.style.display='none'"></div><div><div class="rel-card-name">${r.name}</div><div class="rel-card-sub">${r.group}${r.res?' &middot; '+r.res:''}</div></div></div>`).join('')}</div></div>` : ''}
+
+            <hr class="hr">
+            <div>
+                <div class="sec-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Quick Switch</div>
+                <div class="pill-row">${others.map(o=>`<button class="pill" onclick="pick('${o.id}')">${o.name}</button>`).join('')}</div>
+            </div>
+
+            <div class="creator-section">
+                <div class="creator-inner">
+                    <div class="creator-photo"><img src="https://i.ibb.co/hRSzrw2N/file-69.jpg" alt="Dhrubo Mohiuddin Abdul Kadir"></div>
+                    <div class="creator-info">
+                        <div class="creator-label">Built by</div>
+                        <div class="creator-name">Dhrubo Mohiuddin Abdul Kadir</div>
+                        <div class="creator-bio">I built this because finding working BD streams scattered across the internet was painful. Pulled every channel I could verify into one place — free, no sign-up, no nonsense. If a stream is down, it's the source, not us. Just hop to another channel.</div>
+                        <div class="creator-links">
+                            <a class="creator-link" href="mailto:dhrubomohiuddinabdulkadir@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email</a>
+                            <a class="creator-link" href="https://www.facebook.com/share/1LLhAmRUp2/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>Facebook</a>
+                            <a class="creator-link" href="https://www.instagram.com/dhrubo_morse?igsh=aHNsazZyOTY4dWN2" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>Instagram</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="site-footer">
+   
+                <span>Bangladesh TV Live &middot; ${new Date().getFullYear()}</span>
+            </footer>
+        </div>`;
+
+        initPlayer(c.url);
+    };
+
+    const renderWelcome = () => {
+        return `<div class="welcome"><div class="welcome-box">
+            <div class="welcome-flag"></div>
+            <h2>Bangladesh TV</h2>
+            <p class="tagline">45 live channels, zero sign-ups. Pick one from the sidebar or hit shuffle and see what's on.</p>
+            <div class="welcome-stats"><span class="w-stat g">45 Channels</span><span class="w-stat b">13 Categories</span><span class="w-stat o">Free</span></div>
+            <button class="welcome-cta" onclick="playRandom()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>Shuffle</button>
+            <p class="welcome-note">Some streams go down from time to time — that's just how free IPTV works. If one doesn't play, try another.</p>
+        </div></div>`;
+    };
+
+    // Player
+    const killPlayer = () => {
+        clearTimeout(tmOut);
+        const v = document.getElementById('vid');
+        if (v) { v.removeEventListener('play',onPlay); v.removeEventListener('pause',onPause); v.removeEventListener('waiting',onWait); v.removeEventListener('canplay',onCanPlay); }
+        if (hls) { hls.destroy(); hls = null; }
+    };
+
+    function initPlayer(url) {
+        killPlayer();
+        const v = document.getElementById('vid');
+        if (!v) return;
+        pState = 'loading'; playing = false; muted = true; v.muted = true;
+        updOv();
+
+        tmOut = setTimeout(() => {
+            if (v.readyState < 3) { pState = 'error'; pErr = 'Stream timed out — it may be offline or geo-blocked.'; updOv(); }
+        }, 15000);
+
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+            hls = new Hls({ enableWorker:true, lowLatencyMode:true, startLevel:-1, maxBufferLength:30, maxMaxBufferLength:60 });
+            hls.loadSource(url);
+            hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                clearTimeout(tmOut); pState = 'ready'; updOv();
+                v.muted = true;
+                v.play().then(() => { pState = 'playing'; playing = true; updOv(); }).catch(() => { pState = 'ready'; updOv(); });
+            });
+            hls.on(Hls.Events.ERROR, (_, d) => {
+                if (!d.fatal) return;
+                clearTimeout(tmOut);
+                if (d.type === Hls.ErrorTypes.NETWORK_ERROR) { pState = 'error'; pErr = 'Network error — stream might be down.'; setTimeout(() => { if (hls) hls.startLoad(); }, 2000); }
+                else if (d.type === Hls.ErrorTypes.MEDIA_ERROR) { pErr = 'Media error — retrying...'; hls.recoverMediaError(); setTimeout(() => { if (v.readyState < 3) { pState = 'error'; pErr = 'Couldn\'t recover. Try another channel.'; updOv(); } }, 5000); }
+                else { pState = 'error'; pErr = 'Stream failed.'; hls.destroy(); hls = null; }
+                updOv();
+            });
+        } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+            v.src = url; v.muted = true;
+            v.addEventListener('loadedmetadata', () => { clearTimeout(tmOut); pState = 'ready'; updOv(); v.play().then(() => { pState = 'playing'; playing = true; updOv(); }).catch(() => { pState = 'ready'; updOv(); }); }, { once: true });
+        } else {
+            clearTimeout(tmOut); pState = 'error'; pErr = 'HLS not supported in this browser.'; updOv();
+        }
+
+        v.addEventListener('play', onPlay);
+        v.addEventListener('pause', onPause);
+        v.addEventListener('waiting', onWait);
+        v.addEventListener('canplay', onCanPlay);
+    }
+
+    function onPlay() { playing = true; pState = 'playing'; updOv(); }
+    function onPause() { playing = false; updOv(); }
+    function onWait() { pState = 'loading'; updOv(); }
+    function onCanPlay() { const v = document.getElementById('vid'); if (v && !v.paused) { pState = 'playing'; } else { pState = 'ready'; } updOv(); }
+
+    function updOv() {
+        const ov = document.getElementById('pOv');
+        if (!ov) return;
+        if (pState === 'loading') {
+            ov.className = 'player-ov';
+            ov.innerHTML = `<div class="p-load"><div class="p-spinner"></div><p>Loading${sel?' '+sel.name:''}...</p><small>Connecting to stream</small></div>`;
+        } else if (pState === 'error') {
+            ov.className = 'player-ov clickable';
+            ov.innerHTML = `<div class="p-err"><div class="p-err-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p>Stream Unavailable</p><small>${pErr}</small><button class="p-err-btn" onclick="retry()">Try Play</button></div>`;
+        } else if (pState === 'ready' && !playing) {
+            ov.className = 'player-ov clickable';
+            ov.innerHTML = `<div class="p-play-big"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div>`;
+        } else {
+            ov.className = 'player-ov';
+            ov.innerHTML = '';
+        }
+        // Update top bar
+        const np = document.querySelector('.player-bar-top .np');
+        if (np && sel) { np.innerHTML = `<span class="dot-live"></span><span>${sel.name}</span>${muted&&playing?'<span class="mutetag">MUTED</span>':''}`; }
+    }
+
+    function handleClick() {
+        const v = document.getElementById('vid'); if (!v) return;
+        if (pState === 'ready') { v.play().then(() => { playing = true; pState = 'playing'; updOv(); }).catch(() => {}); }
+        else if (playing) { v.pause(); playing = false; updOv(); }
+    }
+
+    function togPlay() {
+        const v = document.getElementById('vid'); if (!v) return;
+        if (v.paused) v.play().then(() => { playing = true; pState = 'playing'; updOv(); }).catch(() => {});
+        else { v.pause(); playing = false; updOv(); }
+    }
+
+    function togMute() {
+        const v = document.getElementById('vid'); if (!v) return;
+        v.muted = !v.muted; muted = v.muted; updOv();
+    }
+
+    function togFS() {
+        const b = document.getElementById('playerBox'); if (!b) return;
+        if (!document.fullscreenElement) b.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+    }
+
+    function retry() {
+        const v = document.getElementById('vid'); if (!v) return;
+        v.play().then(() => { playing = true; pState = 'playing'; updOv(); }).catch(() => { pState = 'ready'; updOv(); });
+    }
+
+    // Actions
+    function pick(id) {
+        const c = C.find(x => x.id === id); if (!c) return;
+        sel = c; renderList(); renderStage();
+        if (window.innerWidth < 900) closeSB();
+        document.getElementById('stage').scrollTop = 0;
+    }
+
+    function pickGrp(g) { grp = g; sq = ""; favOnly = false; document.getElementById('searchIn').value = ''; renderTags(); renderList(); updFavBtn(); }
+    function onSearch() { sq = document.getElementById('searchIn').value; favOnly = false; updFavBtn(); renderList(); }
+    function toggleFavFilter() { favOnly = !favOnly; if (favOnly) { sq = ""; grp = "All"; document.getElementById('searchIn').value = ''; renderTags(); } updFavBtn(); renderList(); }
+    function playRandom() { pick(C[Math.floor(Math.random() * C.length)].id); }
+
+    function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sbOv').classList.toggle('show'); }
+    function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOv').classList.remove('show'); }
+
+    // Boot
+    renderTags(); renderList(); renderStage(); updFavBtn();
+    </script>
+</body>
+</html>
